@@ -2,61 +2,73 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Terminal Agilopostale</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Poste Radio Récepteur - Agilopostale</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            background-color: #050505;
-            color: #00ff00;
+            background-color: #121110; /* Fond très sombre, aspect vieux tableau de bord */
+            color: #ff9f00; /* Couleur ambre/phosphore des vieux cadrans d'aviation */
             font-family: 'VT323', monospace;
-            font-size: 1.2rem;
+            font-size: 1.3rem;
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            text-shadow: 0px 0px 5px #00ff00;
+            text-shadow: 0px 0px 4px #ff9f00;
         }
 
         #terminal {
             width: 100%;
-            max-width: 600px;
-            background-color: #000;
-            border: 2px solid #00ff00;
+            max-width: 500px;
+            background-color: #0a0908;
+            border: 3px solid #ff9f00;
             padding: 20px;
-            box-shadow: 0 0 15px #00ff00;
-            border-radius: 5px;
+            box-shadow: inset 0 0 20px rgba(255, 159, 0, 0.2), 0 0 15px rgba(255, 159, 0, 0.4);
+            border-radius: 8px;
             position: relative;
-            overflow: hidden;
         }
 
-        /* Effet de scanline d'un vieil écran cathodique */
+        /* En-tête style plaque métallique rivetée */
+        .hardware-header {
+            text-align: center;
+            font-size: 1rem;
+            letter-spacing: 2px;
+            border-bottom: 2px solid #ff9f00;
+            padding-bottom: 10px;
+            margin-bottom: 20px;
+            color: #ffb74d;
+        }
+
+        /* Effet scanline CRT discret pour le côté rétro */
         #terminal::after {
             content: " ";
             display: block;
             position: absolute;
-            top: 0;
-            left: 0;
-            bottom: 0;
-            right: 0;
-            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
-            z-index: 2;
-            background-size: 100% 2px, 3px 100%;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%);
+            background-size: 100% 4px;
+            z-index: 10;
             pointer-events: none;
         }
 
         .line {
-            margin: 5px 0;
+            margin: 8px 0;
             opacity: 0;
-            animation: fadeIn 0s forwards;
+            line-height: 1.2;
+            animation: fadeIn 0.1s forwards;
         }
 
-        .error { color: #ff3333; text-shadow: 0px 0px 5px #ff3333; }
-        .success { color: #00ff00; }
-        .highlight { color: #ffff00; text-shadow: 0px 0px 5px #ffff00; }
+        .error { color: #ff4444; text-shadow: 0px 0px 5px #ff4444; }
+        .success { color: #ff9f00; }
+        .highlight { color: #fff; text-shadow: 0px 0px 6px #fff; }
 
         @keyframes fadeIn {
             to { opacity: 1; }
@@ -65,77 +77,95 @@
         #input-area {
             display: none;
             margin-top: 20px;
-            border-top: 1px dashed #00ff00;
-            padding-top: 20px;
+            border-top: 1px dashed #ff9f00;
+            padding-top: 15px;
         }
 
+        /* Optimisé pour la saisie mobile */
         input[type="text"] {
-            background: transparent;
-            border: none;
-            border-bottom: 2px solid #00ff00;
-            color: #00ff00;
+            background: #1a140a;
+            border: 1px solid #ff9f00;
+            color: #ff9f00;
             font-family: 'VT323', monospace;
-            font-size: 1.5rem;
-            width: 80%;
+            font-size: 1.6rem;
+            width: 100%;
+            max-width: 250px;
+            padding: 10px;
+            margin-top: 10px;
             outline: none;
             text-transform: uppercase;
-            text-shadow: 0px 0px 5px #00ff00;
+            text-align: center;
+            text-shadow: 0px 0px 5px #ff9f00;
+            -webkit-appearance: none;
+            border-radius: 4px;
         }
 
+        /* Gros bouton facile à cliquer sur smartphone (min 48px de haut) */
         button {
-            background-color: #00ff00;
-            color: #000;
+            background-color: #ff9f00;
+            color: #0a0908;
             border: none;
+            border-radius: 4px;
             font-family: 'VT323', monospace;
-            font-size: 1.2rem;
+            font-size: 1.4rem;
+            min-height: 48px;
+            width: 100%;
+            max-width: 250px;
             padding: 5px 15px;
             cursor: pointer;
-            margin-top: 10px;
+            margin-top: 15px;
             font-weight: bold;
+            box-shadow: 0px 4px 0px #b36f00;
+            transition: background 0.1s;
         }
 
-        button:hover {
-            background-color: #ffff00;
+        button:active {
+            transform: translateY(2px);
+            box-shadow: 0px 2px 0px #b36f00;
         }
 
         #final-message {
-            margin-top: 20px;
-            font-size: 1.3rem;
-            line-height: 1.5;
+            margin-top: 15px;
+            font-size: 1.4rem;
+            line-height: 1.4;
         }
     </style>
 </head>
 <body>
 
     <div id="terminal">
+        <div class="hardware-header">
+            ★ AGILOPOSTALE • EMETTEUR-RECEPTEUR TYPE-43 ★
+        </div>
+
         <div id="boot-sequence">
             <div class="line error" style="animation-delay: 0.5s;">[FAIL] KERNEL PANIC : DEPENDENCY "QR_CODE" NOT FOUND.</div>
-            <div class="line success" style="animation-delay: 1.5s;">[ OK ] MOUNTING TEMPORAL DRIVE... YEAR 1943.</div>
-            <div class="line success" style="animation-delay: 2.5s;">[ OK ] DOWNGRADING COMMUNICATION PROTOCOLS.</div>
-            <div class="line success" style="animation-delay: 3.5s;">[ OK ] LOADING : TELEGRAPHE_MANUEL.EXE</div>
-            <div class="line highlight" style="animation-delay: 4.5s;"><br>ERREUR SYSTÈME. ANOMALIE TEMPORELLE DÉTECTÉE.</div>
-            <div class="line" style="animation-delay: 5.5s;">Veuillez prouver votre identité pour déverrouiller le canal de secours.</div>
+            <div class="line success" style="animation-delay: 1.2s;">[ OK ] MOUNTING TEMPORAL DRIVE... YEAR 1943.</div>
+            <div class="line success" style="animation-delay: 1.8s;">[ OK ] DOWNGRADING COMMUNICATION PROTOCOLS.</div>
+            <div class="line success" style="animation-delay: 2.4s;">[ OK ] LOADING : TELEGRAPHE_MANUEL.EXE</div>
+            <div class="line highlight" style="animation-delay: 3.0s;"><br>ERREUR SYSTÈME. ANOMALIE TEMPORELLE DÉTECTÉE.</div>
+            <div class="line" style="animation-delay: 3.8s;">Veuillez prouver votre identité pour déverrouiller le canal de secours.</div>
         </div>
 
         <div id="input-area">
-            <p>> Saisissez l'indicatif de la tour de secours la plus proche :</p>
-            <input type="text" id="towerCode" autocomplete="off" placeholder="_">
+            <p style="margin: 0;">> Saisissez l'indicatif de la tour de secours la plus proche :</p>
+            <input type="text" id="towerCode" autocomplete="off" placeholder="_____" autofocus>
             <br>
             <button onclick="verifyCode()">TRANSMETTRE</button>
-            <div id="feedback" style="margin-top: 10px;"></div>
+            <div id="feedback" style="margin-top: 12px;"></div>
         </div>
 
         <div id="final-message"></div>
     </div>
 
     <script>
-        // Afficher la zone de saisie après l'animation (6 secondes)
+        // Affichage de la zone de saisie après l'animation (4.5 secondes)
         setTimeout(() => {
             document.getElementById('input-area').style.display = 'block';
             document.getElementById('towerCode').focus();
-        }, 6000);
+        }, 4500);
 
-        // Permettre de valider avec la touche "Entrée"
+        // Validation au clavier mobile (Touche "Entrée / Accéder")
         document.getElementById("towerCode").addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
                 event.preventDefault();
@@ -144,10 +174,7 @@
         });
 
         function verifyCode() {
-            // Nettoyage de l'entrée : passage en minuscules et suppression des espaces inutiles
             const input = document.getElementById('towerCode').value.toLowerCase().trim();
-            
-            // Liste des réponses acceptées
             const validAnswers = ['lyon-26', 'lyon 26', '26'];
             
             const feedbackDiv = document.getElementById('feedback');
@@ -155,7 +182,6 @@
             const inputArea = document.getElementById('input-area');
 
             if (validAnswers.includes(input)) {
-                // Bonne réponse
                 inputArea.style.display = 'none';
                 finalMsgDiv.innerHTML = `
                     <div class="line success">[ OK ] AUTHENTIFICATION RÉUSSIE.</div>
@@ -164,13 +190,9 @@
                     <div class="line highlight">>>> MESSAGE ENTRANT <<<</div>
                     <div class="line">Le protocole optique a échoué. Arrêtez de regarder cet écran.</div>
                     <div class="line">Les points et les traits vous guideront. Décodez le signal de l'Aéropostale...</div>
-                    <br>
-                    <div class="line highlight">...ET REGARDEZ SOUS LA TABLE.</div>
                 `;
             } else {
-                // Mauvaise réponse
                 feedbackDiv.innerHTML = '<span class="error">[ ERREUR ] INDICATIF INCONNU. ACCÈS REFUSÉ.</span>';
-                // Efface le champ pour réessayer
                 document.getElementById('towerCode').value = '';
             }
         }
