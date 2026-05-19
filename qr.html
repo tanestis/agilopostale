@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Communication Agilopostale - 1943</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+
+        body {
+            background-color: #d9cbb0; /* Couleur papier vieilli */
+            color: #2b1d0e;
+            font-family: 'Courier Prime', monospace;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            text-align: center;
+            background-image: radial-gradient(#b8a582 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+
+        #terminal {
+            background-color: #eaddc5;
+            border: 4px double #4a331c;
+            padding: 30px;
+            max-width: 500px;
+            width: 100%;
+            box-shadow: 10px 10px 0px rgba(0,0,0,0.2);
+            position: relative;
+        }
+
+        h1 {
+            font-size: 1.5rem;
+            text-transform: uppercase;
+            border-bottom: 2px dashed #4a331c;
+            padding-bottom: 10px;
+            margin-top: 0;
+        }
+
+        .alert {
+            color: #8b0000;
+            font-weight: bold;
+            border: 2px solid #8b0000;
+            padding: 10px;
+            margin-bottom: 20px;
+            background-color: rgba(139, 0, 0, 0.1);
+            animation: blink 2s infinite;
+        }
+
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+
+        #morse-display {
+            font-size: 2rem;
+            letter-spacing: 5px;
+            background: #2b1d0e;
+            color: #d9cbb0;
+            padding: 15px;
+            min-height: 40px;
+            margin-bottom: 20px;
+            border-radius: 5px;
+            word-wrap: break-word;
+        }
+
+        .controls {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        button {
+            font-family: 'Courier Prime', monospace;
+            font-size: 1.2rem;
+            font-weight: bold;
+            background-color: #d9cbb0;
+            border: 2px solid #4a331c;
+            color: #4a331c;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.1s;
+            box-shadow: 3px 3px 0px #4a331c;
+        }
+
+        button:active {
+            box-shadow: 0px 0px 0px #4a331c;
+            transform: translate(3px, 3px);
+            background-color: #c4b599;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        .btn-clear {
+            background-color: #a44;
+            color: #fff;
+            border-color: #511;
+            box-shadow: 3px 3px 0px #511;
+        }
+
+        #success-screen {
+            display: none;
+            background-color: #2b1d0e;
+            color: #4CAF50;
+            padding: 20px;
+            border: 4px solid #4CAF50;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .typewriter {
+            overflow: hidden;
+            border-right: .15em solid orange;
+            white-space: pre-wrap;
+            margin: 0 auto;
+            letter-spacing: .15em;
+            animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="terminal">
+        <h1>Tour de Contrôle - Lyon 26</h1>
+        
+        <div id="error-msg" class="alert">
+            ERREUR SYSTÈME : PROTOCOLE "QR_CODE" INCONNU EN 1943.<br><br>
+            BASCULEMENT SUR L'ÉMETTEUR TÉLÉGRAPHIQUE MANUEL.
+        </div>
+
+        <p>Saisissez le code d'urgence intercepté :</p>
+
+        <div id="morse-display"></div>
+
+        <div id="game-controls">
+            <div class="controls">
+                <button onclick="addSignal('.')">Point ( . )</button>
+                <button onclick="addSignal('-')">Trait ( - )</button>
+                <button onclick="addSignal(' ')" class="full-width">Espace (Lettre suivante)</button>
+                <button onclick="clearSignal()" class="full-width btn-clear">Effacer tout</button>
+            </div>
+        </div>
+
+        <div id="success-screen">
+            <h3>>> DÉCODAGE RÉUSSI</h3>
+            <p>> MOT IDENTIFIÉ : TABLEAU</p>
+            <p>> TRANSMISSION DE LA TOUR : "Le tableau de bord central contrôle la flotte. Prenez votre Faisceau d'Allumage (Calque transparent) dans la boîte à outils. Rendez-vous au tableau mural pour calibrer les circuits de la flotte."</p>
+            <p>> FIN DE TRANSMISSION.</p>
+        </div>
+    </div>
+
+    <script>
+        // Le mot cible est "TABLEAU"
+        // T: - / A: .- / B: -... / L: .-.. / E: . / A: .- / U: ..-
+        const targetSequence = "- .- -... .-.. . .- ..-";
+        let currentSequence = "";
+
+        const display = document.getElementById("morse-display");
+        const successScreen = document.getElementById("success-screen");
+        const gameControls = document.getElementById("game-controls");
+        const errorMsg = document.getElementById("error-msg");
+
+        function addSignal(signal) {
+            // Ajouter un bip sonore simple (Optionnel)
+            playBeep(signal === '-' ? 300 : 100);
+
+            if (currentSequence.length > 0 && signal !== ' ' && currentSequence.slice(-1) !== ' ') {
+                currentSequence += ""; // Pas d'espace entre les signaux d'une même lettre
+            }
+            currentSequence += signal;
+            
+            // Éviter les espaces multiples
+            currentSequence = currentSequence.replace(/  +/g, ' ');
+            display.innerText = currentSequence;
+
+            checkWin();
+        }
+
+        function clearSignal() {
+            currentSequence = "";
+            display.innerText = "";
+        }
+
+        function checkWin() {
+            // Nettoyer les espaces de fin pour la vérification
+            let checkSeq = currentSequence.trim();
+            
+            if (checkSeq === targetSequence) {
+                // VICTOIRE
+                gameControls.style.display = "none";
+                errorMsg.style.display = "none";
+                successScreen.style.display = "block";
+                display.style.color = "#4CAF50";
+            }
+        }
+
+        // --- Synthétiseur audio très simple pour faire des "bips" ---
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        function playBeep(duration) {
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+            const oscillator = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            
+            oscillator.type = 'sine';
+            oscillator.frequency.value = 600; // Fréquence du bip
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            
+            oscillator.start();
+            
+            gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (duration / 1000));
+            
+            oscillator.stop(audioCtx.currentTime + (duration / 1000));
+        }
+    </script>
+</body>
+</html>
