@@ -3,225 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Communication Agilopostale - 1943</title>
+    <title>Terminal Agilopostale</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Courier+Prime:ital,wght@0,400;0,700;1,400&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
         body {
-            background-color: #d9cbb0; /* Couleur papier vieilli */
-            color: #2b1d0e;
-            font-family: 'Courier Prime', monospace;
+            background-color: #050505;
+            color: #00ff00;
+            font-family: 'VT323', monospace;
+            font-size: 1.2rem;
             margin: 0;
             padding: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
-            text-align: center;
-            background-image: radial-gradient(#b8a582 1px, transparent 1px);
-            background-size: 20px 20px;
+            text-shadow: 0px 0px 5px #00ff00;
         }
 
         #terminal {
-            background-color: #eaddc5;
-            border: 4px double #4a331c;
-            padding: 30px;
-            max-width: 500px;
             width: 100%;
-            box-shadow: 10px 10px 0px rgba(0,0,0,0.2);
-            position: relative;
-        }
-
-        h1 {
-            font-size: 1.5rem;
-            text-transform: uppercase;
-            border-bottom: 2px dashed #4a331c;
-            padding-bottom: 10px;
-            margin-top: 0;
-        }
-
-        .alert {
-            color: #8b0000;
-            font-weight: bold;
-            border: 2px solid #8b0000;
-            padding: 10px;
-            margin-bottom: 20px;
-            background-color: rgba(139, 0, 0, 0.1);
-            animation: blink 2s infinite;
-        }
-
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.7; }
-            100% { opacity: 1; }
-        }
-
-        #morse-display {
-            font-size: 2rem;
-            letter-spacing: 5px;
-            background: #2b1d0e;
-            color: #d9cbb0;
-            padding: 15px;
-            min-height: 40px;
-            margin-bottom: 20px;
+            max-width: 600px;
+            background-color: #000;
+            border: 2px solid #00ff00;
+            padding: 20px;
+            box-shadow: 0 0 15px #00ff00;
             border-radius: 5px;
-            word-wrap: break-word;
+            position: relative;
+            overflow: hidden;
         }
 
-        .controls {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 15px;
+        /* Effet de scanline d'un vieil écran cathodique */
+        #terminal::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        .line {
+            margin: 5px 0;
+            opacity: 0;
+            animation: fadeIn 0s forwards;
+        }
+
+        .error { color: #ff3333; text-shadow: 0px 0px 5px #ff3333; }
+        .success { color: #00ff00; }
+        .highlight { color: #ffff00; text-shadow: 0px 0px 5px #ffff00; }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        #input-area {
+            display: none;
+            margin-top: 20px;
+            border-top: 1px dashed #00ff00;
+            padding-top: 20px;
+        }
+
+        input[type="text"] {
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid #00ff00;
+            color: #00ff00;
+            font-family: 'VT323', monospace;
+            font-size: 1.5rem;
+            width: 80%;
+            outline: none;
+            text-transform: uppercase;
+            text-shadow: 0px 0px 5px #00ff00;
         }
 
         button {
-            font-family: 'Courier Prime', monospace;
+            background-color: #00ff00;
+            color: #000;
+            border: none;
+            font-family: 'VT323', monospace;
             font-size: 1.2rem;
-            font-weight: bold;
-            background-color: #d9cbb0;
-            border: 2px solid #4a331c;
-            color: #4a331c;
-            padding: 15px;
+            padding: 5px 15px;
             cursor: pointer;
-            transition: all 0.1s;
-            box-shadow: 3px 3px 0px #4a331c;
+            margin-top: 10px;
+            font-weight: bold;
         }
 
-        button:active {
-            box-shadow: 0px 0px 0px #4a331c;
-            transform: translate(3px, 3px);
-            background-color: #c4b599;
+        button:hover {
+            background-color: #ffff00;
         }
 
-        .full-width {
-            grid-column: span 2;
-        }
-
-        .btn-clear {
-            background-color: #a44;
-            color: #fff;
-            border-color: #511;
-            box-shadow: 3px 3px 0px #511;
-        }
-
-        #success-screen {
-            display: none;
-            background-color: #2b1d0e;
-            color: #4CAF50;
-            padding: 20px;
-            border: 4px solid #4CAF50;
+        #final-message {
             margin-top: 20px;
-            text-align: left;
-        }
-
-        .typewriter {
-            overflow: hidden;
-            border-right: .15em solid orange;
-            white-space: pre-wrap;
-            margin: 0 auto;
-            letter-spacing: .15em;
-            animation: typing 3.5s steps(40, end), blink-caret .75s step-end infinite;
+            font-size: 1.3rem;
+            line-height: 1.5;
         }
     </style>
 </head>
 <body>
 
     <div id="terminal">
-        <h1>Tour de Contrôle - Lyon 26</h1>
-        
-        <div id="error-msg" class="alert">
-            ERREUR SYSTÈME : PROTOCOLE "QR_CODE" INCONNU EN 1943.<br><br>
-            BASCULEMENT SUR L'ÉMETTEUR TÉLÉGRAPHIQUE MANUEL.
+        <div id="boot-sequence">
+            <div class="line error" style="animation-delay: 0.5s;">[FAIL] KERNEL PANIC : DEPENDENCY "QR_CODE" NOT FOUND.</div>
+            <div class="line success" style="animation-delay: 1.5s;">[ OK ] MOUNTING TEMPORAL DRIVE... YEAR 1943.</div>
+            <div class="line success" style="animation-delay: 2.5s;">[ OK ] DOWNGRADING COMMUNICATION PROTOCOLS.</div>
+            <div class="line success" style="animation-delay: 3.5s;">[ OK ] LOADING : TELEGRAPHE_MANUEL.EXE</div>
+            <div class="line highlight" style="animation-delay: 4.5s;"><br>ERREUR SYSTÈME. ANOMALIE TEMPORELLE DÉTECTÉE.</div>
+            <div class="line" style="animation-delay: 5.5s;">Veuillez prouver votre identité pour déverrouiller le canal de secours.</div>
         </div>
 
-        <p>Saisissez le code d'urgence intercepté :</p>
-
-        <div id="morse-display"></div>
-
-        <div id="game-controls">
-            <div class="controls">
-                <button onclick="addSignal('.')">Point ( . )</button>
-                <button onclick="addSignal('-')">Trait ( - )</button>
-                <button onclick="addSignal(' ')" class="full-width">Espace (Lettre suivante)</button>
-                <button onclick="clearSignal()" class="full-width btn-clear">Effacer tout</button>
-            </div>
+        <div id="input-area">
+            <p>> Saisissez l'indicatif de la tour de secours la plus proche :</p>
+            <input type="text" id="towerCode" autocomplete="off" placeholder="_">
+            <br>
+            <button onclick="verifyCode()">TRANSMETTRE</button>
+            <div id="feedback" style="margin-top: 10px;"></div>
         </div>
 
-        <div id="success-screen">
-            <h3>>> DÉCODAGE RÉUSSI</h3>
-            <p>> MOT IDENTIFIÉ : TABLEAU</p>
-            <p>> TRANSMISSION DE LA TOUR : "Le tableau de bord central contrôle la flotte. Prenez votre Faisceau d'Allumage (Calque transparent) dans la boîte à outils. Rendez-vous au tableau mural pour calibrer les circuits de la flotte."</p>
-            <p>> FIN DE TRANSMISSION.</p>
-        </div>
+        <div id="final-message"></div>
     </div>
 
     <script>
-        // Le mot cible est "TABLEAU"
-        // T: - / A: .- / B: -... / L: .-.. / E: . / A: .- / U: ..-
-        const targetSequence = "- .- -... .-.. . .- ..-";
-        let currentSequence = "";
+        // Afficher la zone de saisie après l'animation (6 secondes)
+        setTimeout(() => {
+            document.getElementById('input-area').style.display = 'block';
+            document.getElementById('towerCode').focus();
+        }, 6000);
 
-        const display = document.getElementById("morse-display");
-        const successScreen = document.getElementById("success-screen");
-        const gameControls = document.getElementById("game-controls");
-        const errorMsg = document.getElementById("error-msg");
-
-        function addSignal(signal) {
-            // Ajouter un bip sonore simple (Optionnel)
-            playBeep(signal === '-' ? 300 : 100);
-
-            if (currentSequence.length > 0 && signal !== ' ' && currentSequence.slice(-1) !== ' ') {
-                currentSequence += ""; // Pas d'espace entre les signaux d'une même lettre
+        // Permettre de valider avec la touche "Entrée"
+        document.getElementById("towerCode").addEventListener("keypress", function(event) {
+            if (event.key === "Enter") {
+                event.preventDefault();
+                verifyCode();
             }
-            currentSequence += signal;
+        });
+
+        function verifyCode() {
+            // Nettoyage de l'entrée : passage en minuscules et suppression des espaces inutiles
+            const input = document.getElementById('towerCode').value.toLowerCase().trim();
             
-            // Éviter les espaces multiples
-            currentSequence = currentSequence.replace(/  +/g, ' ');
-            display.innerText = currentSequence;
-
-            checkWin();
-        }
-
-        function clearSignal() {
-            currentSequence = "";
-            display.innerText = "";
-        }
-
-        function checkWin() {
-            // Nettoyer les espaces de fin pour la vérification
-            let checkSeq = currentSequence.trim();
+            // Liste des réponses acceptées
+            const validAnswers = ['lyon-26', 'lyon 26', '26'];
             
-            if (checkSeq === targetSequence) {
-                // VICTOIRE
-                gameControls.style.display = "none";
-                errorMsg.style.display = "none";
-                successScreen.style.display = "block";
-                display.style.color = "#4CAF50";
+            const feedbackDiv = document.getElementById('feedback');
+            const finalMsgDiv = document.getElementById('final-message');
+            const inputArea = document.getElementById('input-area');
+
+            if (validAnswers.includes(input)) {
+                // Bonne réponse
+                inputArea.style.display = 'none';
+                finalMsgDiv.innerHTML = `
+                    <div class="line success">[ OK ] AUTHENTIFICATION RÉUSSIE.</div>
+                    <div class="line success">[ OK ] CONNEXION ÉTABLIE.</div>
+                    <br>
+                    <div class="line highlight">>>> MESSAGE ENTRANT <<<</div>
+                    <div class="line">Le protocole optique a échoué. Arrêtez de regarder cet écran.</div>
+                    <div class="line">Les points et les traits vous guideront. Décodez le signal de l'Aéropostale...</div>
+                    <br>
+                    <div class="line highlight">...ET REGARDEZ SOUS LA TABLE.</div>
+                `;
+            } else {
+                // Mauvaise réponse
+                feedbackDiv.innerHTML = '<span class="error">[ ERREUR ] INDICATIF INCONNU. ACCÈS REFUSÉ.</span>';
+                // Efface le champ pour réessayer
+                document.getElementById('towerCode').value = '';
             }
-        }
-
-        // --- Synthétiseur audio très simple pour faire des "bips" ---
-        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-        function playBeep(duration) {
-            if (audioCtx.state === 'suspended') {
-                audioCtx.resume();
-            }
-            const oscillator = audioCtx.createOscillator();
-            const gainNode = audioCtx.createGain();
-            
-            oscillator.type = 'sine';
-            oscillator.frequency.value = 600; // Fréquence du bip
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioCtx.destination);
-            
-            oscillator.start();
-            
-            gainNode.gain.setValueAtTime(1, audioCtx.currentTime);
-            gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (duration / 1000));
-            
-            oscillator.stop(audioCtx.currentTime + (duration / 1000));
         }
     </script>
 </body>
