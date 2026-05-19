@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Poste Radio Récepteur - Agilopostale</title>
+    <link rel="icon" type="image/x-icon" href="favicon.ico">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=VT323&display=swap');
 
@@ -12,8 +13,8 @@
         }
 
         body {
-            background-color: #121110; /* Fond très sombre, aspect vieux tableau de bord */
-            color: #ff9f00; /* Couleur ambre/phosphore des vieux cadrans d'aviation */
+            background-color: #121110;
+            color: #ff9f00;
             font-family: 'VT323', monospace;
             font-size: 1.3rem;
             margin: 0;
@@ -36,7 +37,6 @@
             position: relative;
         }
 
-        /* En-tête style plaque métallique rivetée */
         .hardware-header {
             text-align: center;
             font-size: 1rem;
@@ -47,7 +47,6 @@
             color: #ffb74d;
         }
 
-        /* Effet scanline CRT discret pour le côté rétro */
         #terminal::after {
             content: " ";
             display: block;
@@ -81,7 +80,6 @@
             padding-top: 15px;
         }
 
-        /* Optimisé pour la saisie mobile */
         input[type="text"] {
             background: #1a140a;
             border: 1px solid #ff9f00;
@@ -100,7 +98,6 @@
             border-radius: 4px;
         }
 
-        /* Gros bouton facile à cliquer sur smartphone (min 48px de haut) */
         button {
             background-color: #ff9f00;
             color: #0a0908;
@@ -124,7 +121,8 @@
             box-shadow: 0px 2px 0px #b36f00;
         }
 
-        #final-message {
+        #dynamic-loading, #final-message {
+            display: none;
             margin-top: 15px;
             font-size: 1.4rem;
             line-height: 1.4;
@@ -155,17 +153,23 @@
             <div id="feedback" style="margin-top: 12px;"></div>
         </div>
 
-        <div id="final-message"></div>
+        <div id="dynamic-loading"></div>
+
+        <div id="final-message">
+            <br>
+            <div class="line highlight">>>> DÉBUT DE TRANSMISSION <<<</div>
+            <div class="line">Le protocole optique a échoué. Arrêtez de regarder cet écran.</div>
+            <div class="line">Les points et les traits vous guideront. Décodez le signal de l'Aéropostale...</div>
+        </div>
     </div>
 
     <script>
-        // Affichage de la zone de saisie après l'animation (4.5 secondes)
+        // Affichage de la zone de saisie après l'animation initiale (4.5s)
         setTimeout(() => {
             document.getElementById('input-area').style.display = 'block';
             document.getElementById('towerCode').focus();
         }, 4500);
 
-        // Validation au clavier mobile (Touche "Entrée / Accéder")
         document.getElementById("towerCode").addEventListener("keypress", function(event) {
             if (event.key === "Enter") {
                 event.preventDefault();
@@ -175,25 +179,48 @@
 
         function verifyCode() {
             const input = document.getElementById('towerCode').value.toLowerCase().trim();
-            const validAnswers = ['lyon-26', 'lyon 26', 'lyon26', '26'];
+            const b64Keys = ['bHlvbi0yNg==', 'bHlvbiAyNg==', 'bHlvbjI2', 'MjY='];
+            const encodedInput = btoa(input);
             
-            const feedbackDiv = document.getElementById('feedback');
-            const finalMsgDiv = document.getElementById('final-message');
             const inputArea = document.getElementById('input-area');
+            const feedbackDiv = document.getElementById('feedback');
+            const loadingArea = document.getElementById('dynamic-loading');
+            const finalMsgDiv = document.getElementById('final-message');
 
-            if (validAnswers.includes(input)) {
-                inputArea.style.display = 'none';
-                finalMsgDiv.innerHTML = `
-                    <div class="line success">[ OK ] AUTHENTIFICATION RÉUSSIE.</div>
-                    <div class="line success">[ OK ] CONNEXION ÉTABLIE.</div>
-                    <br>
-                    <div class="line highlight">>>> MESSAGE ENTRANT <<<</div>
-                    <div class="line">Le protocole optique a échoué. Arrêtez de regarder cet écran.</div>
-                    <div class="line">Les points et les traits vous guideront. Décodez le signal de l'Aéropostale...</div>
+            // Réinitialisation de l'état
+            feedbackDiv.innerHTML = '';
+            inputArea.style.display = 'none';
+            loadingArea.style.display = 'block';
+
+            if (b64Keys.includes(encodedInput)) {
+                // Séquence de SUCCÈS
+                loadingArea.innerHTML = `
+                    <div class="line highlight">[ WAIT ] DEMANDE DE CONNEXION EN COURS...</div>
+                    <div class="line success" style="animation-delay: 0.8s;">[ OK ] RÉGULATION DES FRÉQUENCES QUARTZ.</div>
+                    <div class="line success" style="animation-delay: 1.6s;">[ OK ] COUPLAGE TÉLÉGRAPHIQUE RÉUSSI.</div>
+                    <div class="line success" style="animation-delay: 2.4s;">[ OK ] AUTHENTIFICATION VALIDÉE.</div>
                 `;
+                
+                // On laisse l'animation se jouer, puis on ajoute le message final à la suite
+                setTimeout(() => {
+                    finalMsgDiv.style.display = 'block';
+                }, 3200);
+
             } else {
-                feedbackDiv.innerHTML = '<span class="error">[ ERREUR ] INDICATIF INCONNU. ACCÈS REFUSÉ.</span>';
-                document.getElementById('towerCode').value = '';
+                // Séquence d'ERREUR
+                loadingArea.innerHTML = `
+                    <div class="line highlight">[ WAIT ] INTERROGATION DES ARCHIVES DE 1943...</div>
+                    <div class="line highlight" style="animation-delay: 0.8s;">[ WAIT ] TENTATIVE DE TRIANGULATION DU SIGNAL...</div>
+                `;
+
+                // Après 2.5 secondes de fausse attente, on remet le champ de saisie avec une erreur
+                setTimeout(() => {
+                    loadingArea.style.display = 'none';
+                    inputArea.style.display = 'block';
+                    feedbackDiv.innerHTML = '<span class="error">[ ERREUR ] INDICATIF INCONNU. TENTATIVE ÉCHOUÉE.</span>';
+                    document.getElementById('towerCode').value = '';
+                    document.getElementById('towerCode').focus();
+                }, 2500);
             }
         }
     </script>
